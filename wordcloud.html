@@ -171,6 +171,9 @@
     }, 300);
   }
 
+  // 把 drawCloud 掛到 window，讓外部 script 能呼叫
+  window.drawCloud = drawCloud;
+
   // 即時監聽
   let allDocs = [];
   onSnapshot(colRef, snapshot => {
@@ -230,8 +233,7 @@
     }
   }
 
-  // 讓 drawCloud 在 module 外也能呼叫
-  window.drawCloud = window.drawCloud || function() {};
+  // drawCloud 已在 module 內掛到 window
 </script>
 
 </body>
