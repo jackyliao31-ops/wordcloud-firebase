@@ -4,30 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>即時文字雲</title>
-  <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Noto Sans TC', sans-serif; background: #0f172a; color: #f1f5f9; min-height: 100vh; }
 
-    /* 導覽 */
     nav {
       display: flex; justify-content: center; gap: 8px;
       padding: 16px; background: #1e293b; border-bottom: 1px solid #334155;
     }
-    nav a {
-      padding: 8px 24px; border-radius: 999px; text-decoration: none;
-      font-size: 14px; font-weight: 500; transition: all 0.2s;
-      color: #94a3b8; background: #0f172a;
+    nav button {
+      padding: 8px 24px; border-radius: 999px; border: none;
+      font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;
+      color: #94a3b8; background: #0f172a; width: auto;
     }
-    nav a.active, nav a:hover { background: #6366f1; color: #fff; }
+    nav button.active, nav button:hover { background: #6366f1; color: #fff; }
 
-    /* 頁面切換 */
     .page { display: none; }
-    .page.active { display: block; }
+    .page.active { display: flex; flex-direction: column; align-items: center; }
 
     /* 輸入頁 */
     #page-input {
-      display: flex; flex-direction: column; align-items: center;
       justify-content: center; min-height: calc(100vh - 57px); padding: 32px 16px;
     }
     #page-input h1 { font-size: 28px; margin-bottom: 8px; text-align: center; }
@@ -42,36 +38,27 @@
       font-size: 16px; outline: none; transition: border-color 0.2s; margin-bottom: 12px;
     }
     input[type="text"]:focus { border-color: #6366f1; }
-    button {
+    .submit-btn {
       width: 100%; padding: 14px; border-radius: 10px; border: none;
       background: #6366f1; color: #fff; font-size: 16px; font-weight: 600;
       cursor: pointer; transition: background 0.2s;
     }
-    button:hover { background: #4f46e5; }
-    button:disabled { background: #334155; cursor: not-allowed; }
-    .toast {
-      margin-top: 16px; text-align: center; font-size: 14px;
-      color: #4ade80; min-height: 20px;
-    }
-    .count-badge {
-      text-align: center; margin-top: 16px; color: #64748b; font-size: 13px;
-    }
+    .submit-btn:hover { background: #4f46e5; }
+    .submit-btn:disabled { background: #334155; cursor: not-allowed; }
+    .toast { margin-top: 16px; text-align: center; font-size: 14px; color: #4ade80; min-height: 20px; }
+    .count-badge { text-align: center; margin-top: 16px; color: #64748b; font-size: 13px; }
 
     /* 文字雲頁 */
-    #page-cloud {
-      display: flex; flex-direction: column; align-items: center;
-      padding: 24px 16px; min-height: calc(100vh - 57px);
-    }
+    #page-cloud { padding: 24px 16px; min-height: calc(100vh - 57px); }
     #page-cloud h2 { font-size: 20px; margin-bottom: 4px; }
-    #page-cloud .subtitle { color: #64748b; font-size: 13px; margin-bottom: 20px; }
-    #cloud-canvas {
+    .subtitle { color: #64748b; font-size: 13px; margin-bottom: 20px; }
+    #cloud-wrap {
       background: #1e293b; border-radius: 16px;
-      width: 100%; max-width: 900px; height: 500px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+      width: 100%; max-width: 900px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3); overflow: hidden;
     }
-    .cloud-stats {
-      margin-top: 16px; color: #64748b; font-size: 13px; text-align: center;
-    }
+    #cloud-canvas { display: block; }
+    .cloud-stats { margin-top: 16px; color: #64748b; font-size: 13px; text-align: center; }
     #top-words {
       margin-top: 20px; width: 100%; max-width: 900px;
       display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
@@ -86,8 +73,8 @@
 <body>
 
 <nav>
-  <a href="#" id="nav-input" class="active" onclick="showPage('input')">✏️ 輸入文字</a>
-  <a href="#" id="nav-cloud" onclick="showPage('cloud')">☁️ 文字雲展示</a>
+  <button id="nav-input" class="active" onclick="showPage('input')">✏️ 輸入文字</button>
+  <button id="nav-cloud" onclick="showPage('cloud')">☁️ 文字雲展示</button>
 </nav>
 
 <div id="page-input" class="page active">
@@ -95,7 +82,7 @@
   <p>輸入一個詞，讓它出現在即時文字雲上！</p>
   <div class="input-box">
     <input type="text" id="word-input" placeholder="輸入關鍵字（例如：創新、教育）" maxlength="20">
-    <button id="submit-btn" onclick="submitWord()">送出</button>
+    <button class="submit-btn" id="submit-btn" onclick="submitWord()">送出</button>
     <div class="toast" id="toast"></div>
     <div class="count-badge" id="input-count">載入中...</div>
   </div>
@@ -104,136 +91,124 @@
 <div id="page-cloud" class="page">
   <h2>即時文字雲</h2>
   <p class="subtitle">資料即時更新中</p>
-  <canvas id="cloud-canvas"></canvas>
+  <div id="cloud-wrap">
+    <canvas id="cloud-canvas"></canvas>
+  </div>
   <div class="cloud-stats" id="cloud-stats"></div>
   <div id="top-words"></div>
 </div>
 
-<!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp, query, orderBy }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<script>
+  // ── 頁面切換 ──────────────────────────────
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    document.getElementById('nav-' + name).classList.add('active');
+    if (name === 'cloud') renderCloud();
+  }
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCzrhh31_lwVp7CxSLTB_FHPLSUrReccXU",
-    authDomain: "claude-test-fd4c1.firebaseapp.com",
-    projectId: "claude-test-fd4c1",
-    storageBucket: "claude-test-fd4c1.firebasestorage.app",
-    messagingSenderId: "823724544689",
-    appId: "1:823724544689:web:617763fd4179539dc7c890"
-  };
+  // ── 文字雲繪製 ────────────────────────────
+  function renderCloud() {
+    if (!window._wordFreq || !window.WordCloud) return;
+    const wrap = document.getElementById('cloud-wrap');
+    const canvas = document.getElementById('cloud-canvas');
+    const w = wrap.clientWidth || 800;
+    const h = Math.max(400, Math.round(w * 0.55));
+    canvas.width = w;
+    canvas.height = h;
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const colRef = collection(db, "wordcloud_words");
+    const freq = window._wordFreq;
+    const list = Object.entries(freq).sort((a, b) => b[1] - a[1]);
+    if (!list.length) { canvas.getContext('2d').clearRect(0,0,w,h); return; }
 
-  // 計算詞頻
-  function countWords(docs) {
-    const freq = {};
-    docs.forEach(doc => {
-      const w = (doc.data().word || "").trim().toLowerCase();
-      if (w) freq[w] = (freq[w] || 0) + 1;
+    const maxVal = list[0][1];
+    const wordList = list.map(([word, c]) => [word, Math.max(18, Math.round(16 + (c / maxVal) * 80))]);
+
+    WordCloud(canvas, {
+      list: wordList,
+      gridSize: Math.round(w / 60),
+      weightFactor: 1,
+      fontFamily: 'sans-serif',
+      color: () => `hsl(${Math.floor(Math.random()*360)},70%,65%)`,
+      backgroundColor: '#1e293b',
+      rotateRatio: 0.3,
+      rotationSteps: 2,
+      shuffle: false,
+      drawOutOfBound: false,
     });
-    return freq;
-  }
 
-  // 繪製文字雲
-  let drawTimeout = null;
-  function drawCloud(freq) {
-    clearTimeout(drawTimeout);
-    drawTimeout = setTimeout(() => {
-      const canvas = document.getElementById("cloud-canvas");
-      const list = Object.entries(freq).sort((a, b) => b[1] - a[1]);
-      if (list.length === 0) return;
-
-      const maxVal = list[0][1];
-      const wordList = list.map(([w, c]) => [w, Math.max(16, Math.round(14 + (c / maxVal) * 70))]);
-
-      WordCloud(canvas, {
-        list: wordList,
-        gridSize: 10,
-        weightFactor: 1,
-        fontFamily: "'Noto Sans TC', sans-serif",
-        color: () => `hsl(${Math.floor(Math.random() * 360)}, 70%, 65%)`,
-        backgroundColor: "#1e293b",
-        rotateRatio: 0.3,
-        rotationSteps: 2,
-        shuffle: true,
-        drawOutOfBound: false,
-      });
-
-      // 前 10 熱門詞
-      const topWords = document.getElementById("top-words");
-      topWords.innerHTML = list.slice(0, 10).map(([w, c]) =>
+    document.getElementById('top-words').innerHTML =
+      list.slice(0, 10).map(([w, c]) =>
         `<div class="word-chip">${w}<span>×${c}</span></div>`
-      ).join("");
-    }, 300);
+      ).join('');
   }
 
-  // 把 drawCloud 掛到 window，讓外部 script 能呼叫
-  window.drawCloud = drawCloud;
-
-  // 即時監聽
-  let allDocs = [];
-  onSnapshot(colRef, snapshot => {
-    allDocs = snapshot.docs;
-    const freq = countWords(allDocs);
-    const total = allDocs.length;
-    const unique = Object.keys(freq).length;
-
-    document.getElementById("input-count").textContent = `目前共 ${total} 筆回應`;
-    document.getElementById("cloud-stats").textContent = `共 ${total} 筆回應・${unique} 個不同關鍵字`;
-
-    if (document.getElementById("page-cloud").classList.contains("active")) {
-      drawCloud(freq);
-    }
-    window._wordFreq = freq;
-  });
-
-  // 送出
-  window.submitWord = async function() {
-    const input = document.getElementById("word-input");
-    const btn = document.getElementById("submit-btn");
-    const toast = document.getElementById("toast");
-    const word = input.value.trim();
-
-    if (!word) { toast.textContent = "請輸入關鍵字"; return; }
-
-    btn.disabled = true;
-    btn.textContent = "送出中...";
+  // ── 送出 ──────────────────────────────────
+  async function submitWord() {
+    const input = document.getElementById('word-input');
+    const btn   = document.getElementById('submit-btn');
+    const toast = document.getElementById('toast');
+    const word  = input.value.trim();
+    if (!word) { toast.textContent = '請輸入關鍵字'; return; }
+    btn.disabled = true; btn.textContent = '送出中...';
     try {
-      await addDoc(colRef, { word, created_at: serverTimestamp() });
-      input.value = "";
-      toast.textContent = "✓ 送出成功！";
-      setTimeout(() => toast.textContent = "", 3000);
-    } catch (e) {
-      toast.textContent = "送出失敗，請稍後再試";
-      console.error(e);
+      const { addDoc, collection, serverTimestamp } = window._fb;
+      await addDoc(collection(window._db, 'wordcloud_words'), { word, created_at: serverTimestamp() });
+      input.value = '';
+      toast.textContent = '✓ 送出成功！';
+      setTimeout(() => toast.textContent = '', 3000);
+    } catch(e) {
+      toast.textContent = '送出失敗：' + e.message;
     }
-    btn.disabled = false;
-    btn.textContent = "送出";
-  };
+    btn.disabled = false; btn.textContent = '送出';
+  }
 
-  // Enter 鍵送出
-  document.getElementById("word-input").addEventListener("keydown", e => {
-    if (e.key === "Enter") window.submitWord();
+  document.getElementById('word-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitWord();
   });
 </script>
 
-<script>
-  function showPage(name) {
-    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-    document.querySelectorAll("nav a").forEach(a => a.classList.remove("active"));
-    document.getElementById("page-" + name).classList.add("active");
-    document.getElementById("nav-" + name).classList.add("active");
+<!-- wordcloud2 -->
+<script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.js" onerror="this.src='https://unpkg.com/wordcloud@1.2.2/src/wordcloud2.js'"></script>
 
-    if (name === "cloud" && window._wordFreq) {
-      setTimeout(() => drawCloud(window._wordFreq), 100);
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp }   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp }
+    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+  const app = initializeApp({
+    apiKey:            "AIzaSyCzrhh31_lwVp7CxSLTB_FHPLSUrReccXU",
+    authDomain:        "claude-test-fd4c1.firebaseapp.com",
+    projectId:         "claude-test-fd4c1",
+    storageBucket:     "claude-test-fd4c1.firebasestorage.app",
+    messagingSenderId: "823724544689",
+    appId:             "1:823724544689:web:617763fd4179539dc7c890"
+  });
+
+  const db = getFirestore(app);
+  window._db = db;
+  window._fb = { addDoc, collection, serverTimestamp };
+
+  onSnapshot(collection(db, 'wordcloud_words'), snapshot => {
+    const freq = {};
+    snapshot.forEach(doc => {
+      const w = (doc.data().word || '').trim().toLowerCase();
+      if (w) freq[w] = (freq[w] || 0) + 1;
+    });
+
+    const total  = snapshot.size;
+    const unique = Object.keys(freq).length;
+    window._wordFreq = freq;
+
+    document.getElementById('input-count').textContent  = `目前共 ${total} 筆回應`;
+    document.getElementById('cloud-stats').textContent  = `共 ${total} 筆回應・${unique} 個不同關鍵字`;
+
+    if (document.getElementById('page-cloud').classList.contains('active')) {
+      renderCloud();
     }
-  }
-
-  // drawCloud 已在 module 內掛到 window
+  });
 </script>
 
 </body>
